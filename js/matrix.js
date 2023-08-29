@@ -9,8 +9,8 @@ const FIGURE = {
     WIDTH: 400
 };
 const MARGINS = {
-    LEFT: 50,
-    TOP: 50,
+    LEFT: 100,
+    TOP: 100,
     RIGHT: 50,
     BOTTOM: 50
 };
@@ -24,29 +24,34 @@ const x = d3.scaleBand()
     .range([0, PLOT.WIDTH])
     .padding(0.05)
 
+const xAxis = d3.axisTop(x)
+
 const y = d3.scaleBand()
     .range([0, PLOT.HEIGHT])
     .padding(0.05)
 
+const yAxis = d3.axisLeft(y)
+
 function color(hop) {
     let color;
-    console.log(hop);
     switch(hop) {
+        case -1:
+            color = 'black';
+            break;
         case 0:
-            color = d3.hsl("black");
+            color = 'black';
             break;
         case 1:
-            color = d3.hsl("red");
+            color = 'red;'
             break;
         case 2:
-            color = d3.hsl("blue");
+            color = 'blue'
             break;
         case 3: 
-            color = d3.hsl("green");
+            color = 'green';
             break;
     };
-    console.log(d3.scaleSequential(t => d3.hsl(color.h, color.s * t, color.l) + ""))
-    return d3.scaleSequential(t => d3.hsl(color.h, color.s * t, color.l) + "");
+    return d3.scaleLinear().range(['white', color]).domain([0,1]);
 }
 
 Promise.all(promises).then(function(promisedData){
@@ -74,7 +79,17 @@ Promise.all(promises).then(function(promisedData){
     const plot = canvas.append('g')
         .attr('transform', `translate(${MARGINS.LEFT}, ${MARGINS.TOP})`);
 
+    plot.append('g')
+        .attr('class', 'xAxis')
+        .call(xAxis);
+    
+    plot.append('g')
+        .attr('class', 'yAxis')
+        .call(yAxis);
+        
+    
     const matrix = plot.append('g')
+            .attr('class', 'matrix')
         .selectAll('rect')
         .data(data.edges)
         .enter()
@@ -83,7 +98,9 @@ Promise.all(promises).then(function(promisedData){
             .attr('y', function(d) { return( y(d._TARGET) ) })
             .attr('width', x.bandwidth)
             .attr('height', y.bandwidth)
-            .attr('fill', d => color(d._HOP)(d._WEIGHT));
+            .attr('fill', d => color(d._HOP)(d._WEIGHT))
+            .attr('rx', 4)
+            .attr('ry', 4);
     
 }).catch(function(error) {
 

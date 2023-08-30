@@ -36,7 +36,7 @@ const yAxis = d3.axisLeft(y)
     .tickSizeOuter(0)
     .tickSizeInner(0);
 
-function color(hop) {
+function hopColor(hop){
     let color;
     switch(hop) {
         case -1:
@@ -52,12 +52,20 @@ function color(hop) {
             color = 'blue'
             break;
         case 3: 
-            color = 'green';
+            color = 'turquoise';
             break;
         case 4: 
-            color = 'pink';
+            color = 'green';
+            break;
+        case 5:
+            color = 'orange'
             break;
     };
+    return color;
+}
+
+function colorGradient(hop) {
+    let color = hopColor(hop);
     return d3.scaleLinear().range(['white', color]).domain([0,1]);
 }
 
@@ -72,8 +80,9 @@ Promise.all(promises).then(function(promisedData){
     // Process
     data.edges.forEach(d => d._WEIGHT = Number(d._WEIGHT));
     data.nodes.sort(function(a, b) { 
-        return (b._HOP + b._WEIGHTED) - (a._HOP + a._WEIGHTED);
-    })
+        return a._HOP - b._HOP || b._WEIGHTED - a._WEIGHTED; 
+    });
+    console.log(data.nodes);
 
     x.domain(data.nodes.map(d => d._ID));
     y.domain(data.nodes.map(d => d._ID));
@@ -114,7 +123,7 @@ Promise.all(promises).then(function(promisedData){
             .attr('y', function(d) { return( y(d._TARGET) ) })
             .attr('width', x.bandwidth)
             .attr('height', y.bandwidth)
-            .attr('fill', d => color(d._HOP)(d._WEIGHT))
+            .attr('fill', d => colorGradient(d._HOP)(d._WEIGHT))
             .attr('color', 'black')
             .attr('rx', 2)
             .attr('ry', 2);

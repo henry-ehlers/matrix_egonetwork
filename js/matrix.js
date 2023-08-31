@@ -40,33 +40,64 @@ function hopColor(hop){
     let color;
     switch(hop) {
         case -1:
-            color = 'black';
-            break;
+            return 'black';
         case 0:
-            color = 'black';
-            break;
+            return 'black';
         case 1:
-            color = 'red;'
-            break;
+            return 'red';
         case 2:
-            color = 'blue'
-            break;
+            return 'blue';
         case 3: 
-            color = 'turquoise';
-            break;
+            return 'turquoise';
         case 4: 
-            color = 'green';
-            break;
+            return 'green';
         case 5:
-            color = 'orange'
-            break;
+            return 'orange'
     };
-    return color;
 }
 
 function colorGradient(hop) {
     let color = hopColor(hop);
     return d3.scaleLinear().range(['white', color]).domain([0,1]);
+}
+
+function range(size, startAt = 0) {
+    return [...Array(size).keys()].map(i => i + startAt);
+}
+
+function getEnds(orderedNodes) {
+    let currentHop = 0;
+    let currentLength = 0;
+    let ends = [];
+    let start = orderedNodes[0].id;
+    let end = orderedNodes[0].id;
+    for (const node of orderedNodes) {
+        const newHop = node.hop;
+        if (newHop == currentHop) {
+            currentLength++
+        } else {
+            ends.push({'startX': start, 'startY': start, 'end': end, 'hop': currentHop, 'height': currentLength, 'width': currentLength});
+            start = node.id;
+            currentHop = newHop;
+            currentLength = 1;
+        }
+        end = node.id;
+    };
+    ends.push({'startX': start, 'startY': start, 'end': end, 'hop': currentHop, 'height': currentLength, 'width': currentLength}); 
+    return ends;
+}
+
+function getInbetweens(ends) {
+    if (ends.length < 2) {
+        return ends;
+    }
+    for (const ind of range(ends.length-1, 1)) {
+        console.log(ind);
+        const inBetweenA = {'startX': ends[ind].startX,'startY': ends[ind - 1].startY,'hop': -1,'height': ends[ind - 1].height,'width': ends[ind].width};
+        const inBetweenB = {'startX': ends[ind -1 ].startX,'startY': ends[ind].startY,'hop': -1,'height': ends[ind].width,'width': ends[ind - 1].height};
+        ends.push(inBetweenA);
+        ends.push(inBetweenB);
+    }
 }
 
 Promise.all(promises).then(function(promisedData){
@@ -78,14 +109,15 @@ Promise.all(promises).then(function(promisedData){
     };
 
     // Process
-    data.edges.forEach(d => d._WEIGHT = Number(d._WEIGHT));
+    data.edges.forEach(d => d.weight = Number(d.weight));
     data.nodes.sort(function(a, b) { 
-        return a._HOP - b._HOP || b._WEIGHTED - a._WEIGHTED; 
+        return a.hop - b.hop || b.weighted - a.weighted; 
     });
-    console.log(data.nodes);
+    data['ends'] = getEnds(data.nodes);
+    getInbetweens(data.ends);
 
-    x.domain(data.nodes.map(d => d._ID));
-    y.domain(data.nodes.map(d => d._ID));
+    x.domain(data.nodes.map(d => d.id));
+    y.domain(data.nodes.map(d => d.id));
 
     const canvas = d3.select('#matrix')
         .append('svg') 
@@ -94,9 +126,10 @@ Promise.all(promises).then(function(promisedData){
 
     const plot = canvas.append('g')
         .attr('transform', `translate(${MARGINS.LEFT}, ${MARGINS.TOP})`);
-
+    
     const axisX = plot.append('g')
-            .attr('class', 'xaxis')
+        .attr('class', 'xaxis')
+            .style("font-size", "6pt")
             .attr('transform', `translate(0, ${PLOT.HEIGHT})`)
         .call(xAxis)
     axisX.selectAll("text")  
@@ -109,6 +142,7 @@ Promise.all(promises).then(function(promisedData){
     
     const axisY = plot.append('g')
         .attr('class', 'yaxis')
+            .style("font-size", "6pt")
         .call(yAxis)
         .select(".domain")
         .remove();
@@ -119,15 +153,35 @@ Promise.all(promises).then(function(promisedData){
         .data(data.edges)
         .enter()
         .append('rect')
-            .attr('x', function(d) { return( x(d._SOURCE) ) })
-            .attr('y', function(d) { return( y(d._TARGET) ) })
+            .attr('x', function(d) { return( x(d.source) ) })
+            .attr('y', function(d) { return( y(d.target) ) })
             .attr('width', x.bandwidth)
             .attr('height', y.bandwidth)
-            .attr('fill', d => colorGradient(d._HOP)(d._WEIGHT))
-            .attr('color', 'black')
+            .attr('fill', d => colorGradient(d.hop)(d.weight))
             .attr('rx', 2)
             .attr('ry', 2);
-    
+
+    let test = 'Cosette'
+    let width = x.bandwidth();
+    console.log(width)
+    const overlay = plot.append('g')
+        .attr('class', 'overlay')
+            .attr("stroke-width", 1)
+            .attr('fill', 'transparent')
+            .attr('opacity', 0.25)
+        .selectAll('rect')
+        .data(data.ends)
+        .enter()
+        .append('rect')
+            .attr('x', d => x(d.startX))
+            .attr('y', d => y(d.startY))
+            .attr('width', d => d.width * 1.05 * x.bandwidth())
+            .attr('height', d => d.height * 1.05 * y.bandwidth())
+            .attr('stroke', d => hopColor(d.hop))
+            .attr('rx', 2)
+            .attr('ry', 2)
+            .attr('class', d => d.hop < 0 ? 'dashed' : "solid")
+
 }).catch(function(error) {
 
     console.log(error)

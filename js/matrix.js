@@ -1,6 +1,9 @@
+const dataset = "miserables";
+const ego = "Valjean";
+
 const promises = [
-    d3.json('./data/miserables.annotated.edges.json'),
-    d3.json('./data/miserables.nodes.json')
+    d3.json('./data/' + dataset + "." + ego + '.edges.json'),
+    d3.json('./data/' + dataset + "." + ego + '.nodes.json')
 ];
 
 // FIGURE DIMENSIONS
@@ -8,12 +11,14 @@ const FIGURE = {
     HEIGHT: 800,
     WIDTH: 800
 };
+
 const MARGINS = {
     LEFT: 100,
     TOP: 50,
     RIGHT: 50,
     BOTTOM: 100
 };
+
 const PLOT = {
     HEIGHT: FIGURE.HEIGHT - MARGINS.BOTTOM - MARGINS.TOP,
     WIDTH: FIGURE.WIDTH - MARGINS.LEFT - MARGINS.RIGHT
@@ -92,11 +97,13 @@ function getInbetweens(ends) {
         return ends;
     }
     for (const ind of range(ends.length-1, 1)) {
-        console.log(ind);
-        const inBetweenA = {'startX': ends[ind].startX,'startY': ends[ind - 1].startY,'hop': -1,'height': ends[ind - 1].height,'width': ends[ind].width};
-        const inBetweenB = {'startX': ends[ind -1 ].startX,'startY': ends[ind].startY,'hop': -1,'height': ends[ind].width,'width': ends[ind - 1].height};
-        ends.push(inBetweenA);
-        ends.push(inBetweenB);
+        const inBetweenA = {
+            'startX': ends[ind].startX,'startY': ends[ind - 1].startY,'hop': -1,'height': ends[ind - 1].height,'width': ends[ind].width
+        };
+        const inBetweenB = {
+            'startX': ends[ind -1 ].startX,'startY': ends[ind].startY,'hop': -1,'height': ends[ind].width,'width': ends[ind - 1].height
+        };
+        ends.push(inBetweenA, inBetweenB);
     }
 }
 

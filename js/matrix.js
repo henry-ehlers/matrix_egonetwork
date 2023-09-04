@@ -42,7 +42,6 @@ const yAxis = d3.axisLeft(y)
     .tickSizeInner(0);
 
 function hopColor(hop){
-    let color;
     switch(hop) {
         case -1:
             return 'black';

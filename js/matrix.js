@@ -1,5 +1,18 @@
-const dataset = "miserables";
-const ego = "Valjean";
+// DATASET 1
+// const dataset = "miserables.434827120503882069";
+// const ego = "20";
+
+// DATASET 2
+// const dataset = "miserables.2499354945414561156"
+// const ego = "19"
+
+// DATASET 3
+// const dataset = "miserables.3848446828006397221"
+// const ego = "35"
+
+// DATASET 4
+const dataset = "miserables.8139397558749019675"
+const ego = "37"
 
 const promises = [
     d3.json('./data/' + dataset + "." + ego + '.edges.json'),
@@ -167,7 +180,6 @@ Promise.all(promises).then(function(promisedData){
             .attr('rx', 2)
             .attr('ry', 2);
 
-    let test = 'Cosette'
     let width = x.bandwidth();
     console.log(width)
     const overlay = plot.append('g')
